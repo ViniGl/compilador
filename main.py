@@ -20,12 +20,14 @@ def calculate(nums, ops):
     soma = int(nums[0])
 
     opsC = 0
+    if len(ops) == 0:
+        return
     for i in nums[1:]:
         if ops[opsC] == "+":
             soma += int(i)
-        else:
+        elif ops[opsC] == "-":
             soma -= int(i)
-        opsC += 1        
+        opsC += 1     
     return soma
 
 print(calculate(p[0],p[1]))

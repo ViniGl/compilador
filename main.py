@@ -1,4 +1,5 @@
 import sys
+import re
 
 
 class Token:
@@ -11,8 +12,7 @@ class Token:
 class Tokenizer:
 
     def __init__(self, origin, position=0):
-        origin.append("EOF")
-        self.origin = " ".join(origin)
+        self.origin = origin + "EOF"
         self.position = position
         self.actual = Token(None, None)
         self.select_next()
@@ -26,7 +26,7 @@ class Tokenizer:
         elif self.origin[self.position] == "+":
             self.actual = Token("+", "PLUS")
             self.position += 1
-        
+
         elif self.origin[self.position] == "-":
             self.actual = Token("-", "MINUS")
             self.position += 1
@@ -38,7 +38,7 @@ class Tokenizer:
         elif self.origin[self.position] == "/":
             self.actual = Token("/", "DIV")
             self.position += 1
-        
+
         elif self.origin[self.position].isdigit():
             number = ""
             while(self.origin[self.position].isdigit()):
@@ -54,70 +54,76 @@ class Tokenizer:
             self.actual = Token("EOF", "EOF")
 
 
+class Pre_process:
+
+    @staticmethod
+    def filter(code):
+        return re.sub('/\*[^\*/]+\*/', '', code)
+
 
 class Parser:
 
     tokens = ""
+    resultado = 0
 
     @staticmethod
-    def parseExpression():
-        resultado = 0
+    def parseTerm():
         if isinstance(Parser.tokens.actual.value, int):
-            resultado += int(Parser.tokens.actual.value)
+            resultado_mult = int(Parser.tokens.actual.value)
             Parser.tokens.select_next()
 
-            while Parser.tokens.actual.value == "+" or Parser.tokens.actual.value == "-" or Parser.tokens.actual.value == "*" or Parser.tokens.actual.value == "/":
-                if Parser.tokens.actual.value == "+":
+            while Parser.tokens.actual.value == "*" or Parser.tokens.actual.value == "/":
+                if Parser.tokens.actual.value == "*":
                     Parser.tokens.select_next()
                     if (isinstance(int(Parser.tokens.actual.value), int)):
-                        resultado += int(Parser.tokens.actual.value)
-                    else:
-                        raise Exception("ERRO")
-                elif Parser.tokens.actual.value == "-":
-                    Parser.tokens.select_next()
-                    if (isinstance(int(Parser.tokens.actual.value), int)):
-                        resultado -= int(Parser.tokens.actual.value)
-                    else:
-                        raise Exception("ERRO")
-
-                elif Parser.tokens.actual.value == "*":
-                    Parser.tokens.select_next()
-                    if (isinstance(int(Parser.tokens.actual.value), int)):
-                        resultado *= int(Parser.tokens.actual.value)
+                        resultado_mult *= int(Parser.tokens.actual.value)
                     else:
                         raise Exception("ERRO")
 
                 elif Parser.tokens.actual.value == "/":
                     Parser.tokens.select_next()
                     if (isinstance(int(Parser.tokens.actual.value), int)):
-                        resultado /= int(Parser.tokens.actual.value)
+                        resultado_mult /= int(Parser.tokens.actual.value)
                     else:
                         raise Exception("ERRO")
 
                 Parser.tokens.select_next()
 
-            return resultado
+            return resultado_mult
         else:
             raise Exception("ERRO")
 
     @staticmethod
+    def parseExpression():
+        Parser.resultado = Parser.parseTerm()
+
+        while Parser.tokens.actual.value == "+" or Parser.tokens.actual.value == "-":
+            if Parser.tokens.actual.value == "+":
+                Parser.tokens.select_next()
+                Parser.resultado += Parser.parseTerm()
+
+            elif Parser.tokens.actual.value == "-":
+                Parser.tokens.select_next()
+                Parser.resultado -= Parser.parseTerm()
+
+        return Parser.resultado
+
+    @staticmethod
     def run(code):
 
+        code = Pre_process.filter(code)
         Parser.tokens = Tokenizer(code)
         resultado = Parser.parseExpression()
 
         if Parser.tokens.actual.value != 'EOF':
-            return "EOF"
+            raise Exception("ERRO")
 
         return resultado
 
 
 if __name__ == "__main__":
 
-    # eq = "".join(sys.argv[1:])
-    # print(eq)
-    eq = sys.argv[1:]
+    eq = sys.argv[1]
     resultado = Parser.run(eq)
-    
 
     print(resultado)

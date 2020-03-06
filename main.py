@@ -11,8 +11,7 @@ class Token:
 class Tokenizer:
 
     def __init__(self, origin, position=0):
-        origin.append("EOF")
-        self.origin = " ".join(origin)
+        self.origin = origin + 'EOF'
         self.position = position
         self.actual = Token(None, None)
         self.select_next()
@@ -107,7 +106,7 @@ class Parser:
         resultado = Parser.parseExpression()
 
         if Parser.tokens.actual.value != 'EOF':
-            return "EOF"
+            raise Exception ("ERRO")
 
         return resultado
 
@@ -116,7 +115,7 @@ if __name__ == "__main__":
 
     # eq = "".join(sys.argv[1:])
     # print(eq)
-    eq = sys.argv[1:]
+    eq = sys.argv[1]
     resultado = Parser.run(eq)
     
 

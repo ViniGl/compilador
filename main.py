@@ -116,7 +116,8 @@ class Parser:
         resultado = Parser.parseExpression()
 
         if Parser.tokens.actual.value != 'EOF':
-            raise Exception("ERRO")
+            raise Exception ("ERRO")
+
 
         return int(resultado)
 

@@ -80,56 +80,42 @@ class TestSum(unittest.TestCase):
         source = '1+'
         self.assertRaises(Exception,main.Parser.run,source)
 
-    def test_error1(self):
-        source = '+1'
-        self.assertRaises(Exception,main.Parser.run,source)
 
-    def test_error2(self):
+    def test_error1(self):
         source = '1 1'
         self.assertRaises(Exception,main.Parser.run,source)
 
-    def test_error3(self):
+    def test_error2(self):
         source = '+1+'
         self.assertRaises(Exception,main.Parser.run,source)
 
-    def test_error4(self):
+    def test_error3(self):
         source = '1 1-3'
         self.assertRaises(Exception,main.Parser.run,source)
 
-    def test_error5(self):
+    def test_error4(self):
         source = '1-30+'
-        self.assertRaises(Exception,main.Parser.run,source)
-    
+        self.assertRaises(Exception,main.Parser.run,source)  
 
-    def test_error6(self):
-        source = '+1-30'
-        self.assertRaises(Exception,main.Parser.run,source)
-    
-
-    def test_error7(self):
+    def test_error5(self):
         source = '-1-30-'
         self.assertRaises(Exception,main.Parser.run,source)
     
 
-    def test_error8(self):
+    def test_error6(self):
         source = '1-3 0'
         self.assertRaises(Exception,main.Parser.run,source)
-    
 
-    def test_error9(self):
-        source = '1--30'
-        self.assertRaises(Exception,main.Parser.run,source)
-
-    def test_error10(self):
+    def test_error7(self):
         source = '   1   -  3    0   '
         self.assertRaises(Exception,main.Parser.run,source)
 
 
-    def test_error11(self):
+    def test_error8(self):
         source = '   1   --  3    0   '
         self.assertRaises(Exception,main.Parser.run,source)
 
-    def test_error12(self):
+    def test_error9(self):
         source = '   1   --  3    0   '
         self.assertRaises(Exception,main.Parser.run,source)
 
@@ -414,6 +400,54 @@ class TestSum(unittest.TestCase):
 
     def test_basetest_roteiro2_9(self):
         source = '3- 3 /* a'
+        self.assertRaises(Exception,main.Parser.run,source)
+
+    ### Parenteses
+
+    def test_op_unario_1(self):
+        source = '+1'
+        expected = 1
+        result = main.Parser.run(source)
+        self.assertEqual(result, expected, "Should be {0}".format(expected))
+
+    def test_op_unario_2(self):
+        source = '+1-30'
+        expected = -29
+        result = main.Parser.run(source)
+        self.assertEqual(result, expected, "Should be {0}".format(expected))
+
+    def test_op_unario_3(self):
+        source = '1--30'
+        expected = 31
+        result = main.Parser.run(source)
+        self.assertEqual(result, expected, "Should be {0}".format(expected))
+
+    def test_basetest_roteiro3_1(self):
+        source = '(3 + 2)  /5'
+        expected = 1
+        result = main.Parser.run(source)
+        self.assertEqual(result, expected, "Should be {0}".format(expected))
+
+    def test_basetest_roteiro3_2(self):
+        source = '+--++3'
+        expected = 3
+        result = main.Parser.run(source)
+        self.assertEqual(result, expected, "Should be {0}".format(expected))
+
+    def test_basetest_roteiro3_3(self):
+        source = '3 - -2/4'
+        expected = 3
+        result = main.Parser.run(source)
+        self.assertEqual(result, expected, "Should be {0}".format(expected))
+
+    def test_basetest_roteiro3_4(self):
+        source = '4/(1+1)*2'
+        expected = 4
+        result = main.Parser.run(source)
+        self.assertEqual(result, expected, "Should be {0}".format(expected))
+
+    def test_basetest_roteiro3_5(self):
+        source = '(2*2'
         self.assertRaises(Exception,main.Parser.run,source)
 
 if __name__ == '__main__':

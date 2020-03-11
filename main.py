@@ -58,7 +58,7 @@ class Pre_process:
 
     @staticmethod
     def filter(code):
-        return re.sub('/\*[^\*/]+\*/', '', code)
+        return re.sub('\/\*(\*(?!\/)|[^*])*\*\/', '', code)
 
 
 class Parser:
@@ -118,7 +118,7 @@ class Parser:
         if Parser.tokens.actual.value != 'EOF':
             raise Exception("ERRO")
 
-        return resultado
+        return int(resultado)
 
 
 if __name__ == "__main__":

@@ -24,7 +24,7 @@ class BinOp(Node):
             return child_1_result * child_2_result
 
         elif self.value == '/':
-            return child_1_result // child_2_result
+            return int(child_1_result / child_2_result)
 
 
 class UnaryOp(Node):

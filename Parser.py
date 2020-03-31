@@ -1,11 +1,11 @@
 from Pre_pros import Pre_process
 from Tokenizer import Tokenizer, Token
+from Node import *
 
 
 class Parser:
 
     tokens = ""
-    resultado = 0
 
     @staticmethod
     def parseTerm():
@@ -14,12 +14,18 @@ class Parser:
 
         while Parser.tokens.actual.value == "*" or Parser.tokens.actual.value == "/":
             if Parser.tokens.actual.value == "*":
+                node = BinOp("*", [])
+                node.children.append(resultado_mult)
                 Parser.tokens.select_next()
-                resultado_mult *= Parser.parseFactor()
+                node.children.append(Parser.parseFactor())
 
             elif Parser.tokens.actual.value == "/":
+                node = BinOp("/", [])
+                node.children.append(resultado_mult)
                 Parser.tokens.select_next()
-                resultado_mult /= Parser.parseFactor()
+                node.children.append(Parser.parseFactor())
+
+            resultado_mult = node
 
             Parser.tokens.select_next()
 
@@ -31,17 +37,20 @@ class Parser:
 
         if isinstance(Parser.tokens.actual.value, int):
             resultado_factor = Parser.tokens.actual.value
-            return resultado_factor
+            node = IntVal(resultado_factor)
+            return node
 
         elif Parser.tokens.actual.value == "+":
+            node = UnaryOp("+", [])
             Parser.tokens.select_next()
-            resultado_factor += Parser.parseFactor()
-            return resultado_factor
+            node.children.append(Parser.parseFactor())
+            return node
 
         elif Parser.tokens.actual.value == "-":
+            node = UnaryOp("-", [])
             Parser.tokens.select_next()
-            resultado_factor -= Parser.parseFactor()
-            return resultado_factor
+            node.children.append(Parser.parseFactor())
+            return node
 
         elif Parser.tokens.actual.value == '(':
             Parser.tokens.select_next()
@@ -61,12 +70,18 @@ class Parser:
 
         while Parser.tokens.actual.value == "+" or Parser.tokens.actual.value == "-":
             if Parser.tokens.actual.value == "+":
+                node = BinOp("+", [])
+                node.children.append(Parser.resultado)
                 Parser.tokens.select_next()
-                Parser.resultado += Parser.parseTerm()
+                node.children.append(Parser.parseTerm())
 
             elif Parser.tokens.actual.value == "-":
+                node = BinOp("-", [])
+                node.children.append(Parser.resultado)
                 Parser.tokens.select_next()
-                Parser.resultado -= Parser.parseTerm()
+                node.children.append(Parser.parseTerm())
+
+            Parser.resultado = node
 
         return Parser.resultado
 
@@ -80,4 +95,4 @@ class Parser:
         if Parser.tokens.actual.value != 'EOF':
             raise Exception("ERRO")
 
-        return int(resultado)
+        return resultado

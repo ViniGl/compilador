@@ -1,6 +1,7 @@
 from Pre_pros import Pre_process
 from Tokenizer import Tokenizer, Token
 from Node import *
+import sys
 
 
 class Parser:
@@ -60,6 +61,9 @@ class Parser:
 
             else:
                 raise Exception("ERRO")
+        
+        elif "$" in Parser.tokens.actual.value:
+            return VarName(Parser.tokens.actual.value)
 
         else:
             raise Exception("ERRO")
@@ -84,15 +88,80 @@ class Parser:
             Parser.resultado = node
 
         return Parser.resultado
+    
+    @staticmethod
+    def parseBlock():
+        if Parser.tokens.actual.value == "{":
+            commands = Commands("Commands")
+            Parser.tokens.select_next()
+            while(Parser.tokens.actual.value != "}"):
+                cmd = Parser.parseCommand()
+            
+                if cmd is not None:
+                    commands.children.append(cmd)
+            
+                Parser.tokens.select_next()
+
+            if Parser.tokens.actual.value != "}":
+                raise Exception("} delimiter not found")
+        
+            Parser.tokens.select_next()
+            return commands
+        else:
+            raise Exception("{ delimiter not found")
+
+    @staticmethod
+    def parseCommand(): 
+        if Parser.tokens.actual.value == ";":
+            pass
+
+        elif Parser.tokens.actual.token_type == "VARIABLE":
+            var_name = Parser.tokens.actual.value
+            var_node = VarName(var_name, [])
+
+            Parser.tokens.select_next()
+
+            if Parser.tokens.actual.value == "=":
+                assign = Assignment("=", [])
+                assign.children.append(var_node)
+                Parser.tokens.select_next()
+                value = Parser.parseExpression()
+
+                assign.children.append(value)
+            
+            else:
+                raise Exception("Invalid Syntax")
+            
+            
+            if Parser.tokens.actual.value != ";":
+                raise Exception("; not found")
+            
+            return assign
+        
+        elif Parser.tokens.actual.value == "echo":
+
+            echo_node = Echo("echo", [])
+            Parser.tokens.select_next()
+            echo_value = Parser.parseExpression()
+
+            echo_node.children.append(echo_value)
+            
+            if Parser.tokens.actual.value != ";":
+                raise Exception("; not found")
+            
+            return echo_node
+
+        else:
+            Parser.parseBlock()
 
     @staticmethod
     def run(code):
 
         code = Pre_process.filter(code)
         Parser.tokens = Tokenizer(code)
-        resultado = Parser.parseExpression()
+        resultado = Parser.parseBlock()
 
         if Parser.tokens.actual.value != 'EOF':
-            raise Exception("ERRO")
+            raise Exception("EOF not reached")
 
         return resultado

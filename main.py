@@ -1,7 +1,7 @@
 import sys
 import re
 from Parser import Parser
-
+from SymbolTable import *
 
 if __name__ == "__main__":
 
@@ -9,10 +9,10 @@ if __name__ == "__main__":
     
     if(".php" in eq):
         f = open(eq)
-        code = "".join([x.strip() for x in f.readlines()]) 
+        code = f.read()
         resultado = Parser.run(code)
-        resultado = resultado.Evaluate()
-        print(resultado)
+        st = SymbolTable()
+        resultado = resultado.Evaluate(st)
     else:
         raise Exception("ERRO")
     

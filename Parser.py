@@ -92,26 +92,21 @@ class Parser:
     @staticmethod
     def parseBlock():
         if Parser.tokens.actual.value == "{":
+            Parser.tokens.select_next()
             commands = Commands("Commands")
-            Parser.tokens.select_next()
-            while(Parser.tokens.actual.value != "}"):
-                cmd = Parser.parseCommand()
-            
-                if cmd is not None:
-                    commands.children.append(cmd)
-            
-                Parser.tokens.select_next()
+            commands.children.append(Parser.parseCommand())
 
-            if Parser.tokens.actual.value != "}":
-                raise Exception("} delimiter not found")
-        
-            Parser.tokens.select_next()
+            while(Parser.tokens.actual.value != "}"):
+                commands.children.append(Parser.parseCommand())
+
+            Parser.tokens.select_next()    
             return commands
         else:
             raise Exception("{ delimiter not found")
 
     @staticmethod
     def parseCommand(): 
+
         if Parser.tokens.actual.value == ";":
             pass
 
@@ -148,11 +143,12 @@ class Parser:
             
             if Parser.tokens.actual.value != ";":
                 raise Exception("; not found")
-            
+
+            Parser.tokens.select_next()
             return echo_node
 
         else:
-            Parser.parseBlock()
+            return Parser.parseBlock()
 
     @staticmethod
     def run(code):
@@ -161,7 +157,7 @@ class Parser:
         Parser.tokens = Tokenizer(code)
         resultado = Parser.parseBlock()
 
-        if Parser.tokens.actual.value != 'EOF':
+        if Parser.tokens.actual.value != 'eof':
             raise Exception("EOF not reached")
 
         return resultado

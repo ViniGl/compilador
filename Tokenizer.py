@@ -82,7 +82,7 @@ class Tokenizer:
                 else:
                     break
 
-            self.actual = Token(alpha, "COMMAND")
+            self.actual = Token(alpha.lower(), "COMMAND")
         
         elif self.origin[self.position] == "$":
             var_name = ""

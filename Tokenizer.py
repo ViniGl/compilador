@@ -12,7 +12,7 @@ class Tokenizer:
         self.position = position
         self.actual = Token(None, None)
         self.select_next()
-        self.reserved_words = ["echo"]
+        self.reserved_words = ["echo", "if", "while", "readline", "else", "and", "or"]
 
     def select_next(self):
 
@@ -53,11 +53,35 @@ class Tokenizer:
             self.position += 1
 
         elif self.origin[self.position] == "=":
-            self.actual = Token("=", "ASSIGN")
-            self.position += 1
+            if (self.origin[self.position] + self.origin[self.position + 1] == "=="):
+                self.actual = Token("==", "EQUAL")
+                self.position += 2
+            else:
+                self.actual = Token("=", "ASSIGN")
+                self.position += 1
 
         elif self.origin[self.position] == ";":
             self.actual = Token(";", "ENDL")
+            self.position += 1
+        
+        elif self.origin[self.position] == ">":
+            self.actual = Token(">", "MORE")
+            self.position += 1
+        
+        elif self.origin[self.position] == "<":
+            self.actual = Token("<", "LESS")
+            self.position += 1
+
+        elif self.origin[self.position] == "or":
+            self.actual = Token("or", "OR")
+            self.position += 1
+        
+        elif self.origin[self.position] == "and":
+            self.actual = Token("and", "AND")
+            self.position += 1
+        
+        elif self.origin[self.position] == "!":
+            self.actual = Token("!", "NOT")
             self.position += 1
 
         elif self.origin[self.position].isdigit():

@@ -13,7 +13,7 @@ class Parser:
         resultado_mult = Parser.parseFactor()
         Parser.tokens.select_next()
 
-        while Parser.tokens.actual.value == "*" or Parser.tokens.actual.value == "/":
+        while Parser.tokens.actual.value == "*" or Parser.tokens.actual.value == "/" or Parser.tokens.actual.value == "and":
             if Parser.tokens.actual.value == "*":
                 node = BinOp("*", [])
                 node.children.append(resultado_mult)
@@ -22,6 +22,12 @@ class Parser:
 
             elif Parser.tokens.actual.value == "/":
                 node = BinOp("/", [])
+                node.children.append(resultado_mult)
+                Parser.tokens.select_next()
+                node.children.append(Parser.parseFactor())
+
+            elif Parser.tokens.actual.value == "and":
+                node = LogOp("and", [])
                 node.children.append(resultado_mult)
                 Parser.tokens.select_next()
                 node.children.append(Parser.parseFactor())
@@ -53,15 +59,33 @@ class Parser:
             node.children.append(Parser.parseFactor())
             return node
 
+        elif Parser.tokens.actual.value == "!":
+            node = LogOp("!", [])
+            Parser.tokens.select_next()
+            node.children.append(Parser.parseFactor())
+            return node
+
         elif Parser.tokens.actual.value == '(':
             Parser.tokens.select_next()
-            resultado_factor = Parser.parseExpression()
+            resultado_factor = Parser.parseRelExpression()
             if Parser.tokens.actual.value == ')':
                 return resultado_factor
 
+        elif Parser.tokens.actual.value == "readline":
+            rl_node = ReadLineOp('readline', [])
+            Parser.tokens.select_next()
+            if Parser.tokens.actual.value == '(':
+                Parser.tokens.select_next()
+                if Parser.tokens.actual.value == ')':
+                    pass
+                else:
+                    raise Exception(") not found after readline")
             else:
-                raise Exception("ERRO")
-        
+                raise Exception("( not found after readline")
+
+            
+            return rl_node
+
         elif "$" in Parser.tokens.actual.value:
             return VarName(Parser.tokens.actual.value)
 
@@ -72,7 +96,7 @@ class Parser:
     def parseExpression():
         Parser.resultado = Parser.parseTerm()
 
-        while Parser.tokens.actual.value == "+" or Parser.tokens.actual.value == "-":
+        while Parser.tokens.actual.value == "+" or Parser.tokens.actual.value == "-" or Parser.tokens.actual.value == "or":
             if Parser.tokens.actual.value == "+":
                 node = BinOp("+", [])
                 node.children.append(Parser.resultado)
@@ -85,28 +109,68 @@ class Parser:
                 Parser.tokens.select_next()
                 node.children.append(Parser.parseTerm())
 
+            elif Parser.tokens.actual.value == "or":
+                node = LogOp("or", [])
+                node.children.append(Parser.resultado)
+                Parser.tokens.select_next()
+                node.children.append(Parser.parseTerm())
+
             Parser.resultado = node
 
         return Parser.resultado
-    
+
+    @staticmethod
+    def parseRelExpression():
+        Parser.resultado = Parser.parseExpression()
+
+        while Parser.tokens.actual.value == "==" or Parser.tokens.actual.value == "<" or Parser.tokens.actual.value == ">":
+            if Parser.tokens.actual.value == "==":
+                node = LogOp("==", [])
+                node.children.append(Parser.resultado)
+                Parser.tokens.select_next()
+                node.children.append(Parser.parseExpression())
+
+            elif Parser.tokens.actual.value == "<":
+                node = LogOp("<", [])
+                node.children.append(Parser.resultado)
+                Parser.tokens.select_next()
+                node.children.append(Parser.parseExpression())
+
+            elif Parser.tokens.actual.value == ">":
+                node = LogOp(">", [])
+                node.children.append(Parser.resultado)
+                Parser.tokens.select_next()
+                node.children.append(Parser.parseExpression())
+
+            Parser.resultado = node
+
+        return Parser.resultado
+
     @staticmethod
     def parseBlock():
         if Parser.tokens.actual.value == "{":
-            Parser.tokens.select_next()
             commands = Commands("Commands")
-            commands.children.append(Parser.parseCommand())
-
+            Parser.tokens.select_next()
             while(Parser.tokens.actual.value != "}"):
-                commands.children.append(Parser.parseCommand())
+                cmd = Parser.parseCommand()
 
-            Parser.tokens.select_next()    
+                if cmd is not None:
+                    commands.children.append(cmd)
+
+                if Parser.tokens.actual.value == ";":
+                    Parser.tokens.select_next()
+
+            if Parser.tokens.actual.value != "}":
+                raise Exception("} delimiter not found")
+
+            Parser.tokens.select_next()
             return commands
         else:
             raise Exception("{ delimiter not found")
 
     @staticmethod
-    def parseCommand(): 
-
+    def parseCommand():
+        
         if Parser.tokens.actual.value == ";":
             pass
 
@@ -120,33 +184,74 @@ class Parser:
                 assign = Assignment("=", [])
                 assign.children.append(var_node)
                 Parser.tokens.select_next()
-                value = Parser.parseExpression()
+                value = Parser.parseRelExpression()
 
                 assign.children.append(value)
-            
+
             else:
                 raise Exception("Invalid Syntax")
-            
-            
+
             if Parser.tokens.actual.value != ";":
                 raise Exception("; not found")
-            
+            Parser.tokens.select_next()
             return assign
-        
+
         elif Parser.tokens.actual.value == "echo":
 
             echo_node = Echo("echo", [])
             Parser.tokens.select_next()
-            echo_value = Parser.parseExpression()
+            echo_value = Parser.parseRelExpression()
 
             echo_node.children.append(echo_value)
-            
+
             if Parser.tokens.actual.value != ";":
                 raise Exception("; not found")
 
             Parser.tokens.select_next()
             return echo_node
 
+        elif Parser.tokens.actual.value == "while":
+            while_node = LoopOp('while', [])
+            Parser.tokens.select_next()
+          
+            if Parser.tokens.actual.value == '(':
+                Parser.tokens.select_next()
+                while_node.children.append(Parser.parseRelExpression())
+                
+                if Parser.tokens.actual.value == ')':
+                    Parser.tokens.select_next()
+                    while_node.children.append(Parser.parseCommand())
+                else:
+                    raise Exception(") not found on while statment")
+            
+            else:
+                raise Exception("( not found on while statment")
+
+            return while_node
+
+        elif Parser.tokens.actual.value == "if":
+            cond_node = IfOp('if', [])
+            Parser.tokens.select_next()
+           
+            if Parser.tokens.actual.value == '(':
+                Parser.tokens.select_next()
+                cond_node.children.append(Parser.parseRelExpression())
+
+                if Parser.tokens.actual.value == ')':
+                    Parser.tokens.select_next()
+                    cond_node.children.append(Parser.parseCommand())
+                else:
+                    raise Exception(") not found on if clause")
+            else:
+                raise Exception("( not found on If clause")
+            
+            
+            if Parser.tokens.actual.value == 'else':
+                Parser.tokens.select_next()
+                cond_node.children.append(Parser.parseCommand())
+            
+            return cond_node
+        
         else:
             return Parser.parseBlock()
 

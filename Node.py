@@ -77,3 +77,48 @@ class Commands(Node):
     def Evaluate(self, st):
         for cmd in self.children:
             cmd.Evaluate(st)
+
+class LogOp(Node):
+
+    def Evaluate(self, st):
+        
+        op = self.value
+
+        if op == "<":
+            return self.children[0].Evaluate(st) < self.children[1].Evaluate(st)
+        elif op == ">":
+            return self.children[0].Evaluate(st) > self.children[1].Evaluate(st)
+        elif op == "==":
+            return self.children[0].Evaluate(st) == self.children[1].Evaluate(st)
+        elif op == "!":
+            return not self.children[0].Evaluate(st)
+        elif op == "or":
+            return self.children[0].Evaluate(st) or self.children[1].Evaluate(st)
+        elif op == "and":
+            return self.children[0].Evaluate(st) and self.children[1].Evaluate(st)
+
+
+class LoopOp(Node):
+
+    def Evaluate(self, st):  
+        while (self.children[0].Evaluate(st)):
+            self.children[1].Evaluate(st)
+        
+    
+class IfOp(Node):
+
+    def Evaluate(self, st):
+        
+        if (self.children[0].Evaluate(st)):
+            self.children[1].Evaluate(st)
+        
+
+        else:
+            if len(self.children) > 2:
+                self.children[2].Evaluate(st)
+
+
+class ReadLineOp(Node):
+
+    def Evaluate(self, st):
+        return int(input())

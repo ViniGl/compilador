@@ -8,6 +8,21 @@ class Parser:
 
     tokens = ""
 
+    ################################################################################ PROGRAM
+    @staticmethod
+    def parseProgram():
+        if Parser.tokens.actual.value == "<?php":
+            Parser.tokens.select_next()
+            commands = Parser.parseCommand()
+            if Parser.tokens.actual.value != "?>":
+                raise Exception("?> delimiter not found")
+
+            Parser.tokens.select_next()
+            return commands
+        else:
+            raise Exception("{ delimiter not found")
+
+    ################################################################################ TERM
     @staticmethod
     def parseTerm():
         resultado_mult = Parser.parseFactor()
@@ -38,6 +53,7 @@ class Parser:
 
         return resultado_mult
 
+    ################################################################################ FACTOR
     @staticmethod
     def parseFactor():
         resultado_factor = 0
@@ -65,10 +81,19 @@ class Parser:
             node.children.append(Parser.parseFactor())
             return node
 
+        elif Parser.tokens.actual.token_type == "BOOL":
+            node = BoolVal(Parser.tokens.actual.value, [])
+            return node
+        
+        elif Parser.tokens.actual.token_type == "STRING":
+            node = StringVal(Parser.tokens.actual.value, [])
+            return node
+
         elif Parser.tokens.actual.value == '(':
             Parser.tokens.select_next()
             resultado_factor = Parser.parseRelExpression()
             if Parser.tokens.actual.value == ')':
+                
                 return resultado_factor
 
         elif Parser.tokens.actual.value == "readline":
@@ -90,13 +115,14 @@ class Parser:
             return VarName(Parser.tokens.actual.value)
 
         else:
-            raise Exception("ERRO")
+            raise Exception("No options on Factor")
 
+    ################################################################################ EXPRESSION
     @staticmethod
     def parseExpression():
         Parser.resultado = Parser.parseTerm()
 
-        while Parser.tokens.actual.value == "+" or Parser.tokens.actual.value == "-" or Parser.tokens.actual.value == "or":
+        while Parser.tokens.actual.value == "+" or Parser.tokens.actual.value == "-" or Parser.tokens.actual.value == "or" or Parser.tokens.actual.value == ".":
             if Parser.tokens.actual.value == "+":
                 node = BinOp("+", [])
                 node.children.append(Parser.resultado)
@@ -115,10 +141,17 @@ class Parser:
                 Parser.tokens.select_next()
                 node.children.append(Parser.parseTerm())
 
+            elif Parser.tokens.actual.value == ".":
+                node = BinOp(".", [])
+                node.children.append(Parser.resultado)
+                Parser.tokens.select_next()
+                node.children.append(Parser.parseTerm())
+
             Parser.resultado = node
 
         return Parser.resultado
 
+    ################################################################################ RelEXPRESSION
     @staticmethod
     def parseRelExpression():
         Parser.resultado = Parser.parseExpression()
@@ -146,6 +179,7 @@ class Parser:
 
         return Parser.resultado
 
+    ################################################################################ BLOCK
     @staticmethod
     def parseBlock():
         if Parser.tokens.actual.value == "{":
@@ -168,6 +202,7 @@ class Parser:
         else:
             raise Exception("{ delimiter not found")
 
+    ################################################################################ COMMAND
     @staticmethod
     def parseCommand():
         
@@ -193,7 +228,6 @@ class Parser:
 
             if Parser.tokens.actual.value != ";":
                 raise Exception("; not found")
-            Parser.tokens.select_next()
             return assign
 
         elif Parser.tokens.actual.value == "echo":
@@ -260,7 +294,7 @@ class Parser:
 
         code = Pre_process.filter(code)
         Parser.tokens = Tokenizer(code)
-        resultado = Parser.parseBlock()
+        resultado = Parser.parseProgram()
 
         if Parser.tokens.actual.value != 'eof':
             raise Exception("EOF not reached")

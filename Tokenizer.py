@@ -91,7 +91,7 @@ class Tokenizer:
 
         elif(self.origin[self.position] == '?'):
             header = ''
-            while(self.origin[self.position] != '\n'):
+            while(self.origin[self.position] != '>'):
                 header += self.origin[self.position]
 
                 if (self.position < len(self.origin) - 1):

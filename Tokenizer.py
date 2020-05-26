@@ -12,7 +12,8 @@ class Tokenizer:
         self.position = position
         self.actual = Token(None, None)
         self.select_next()
-        self.reserved_words = ["echo"]
+        self.reserved_words = ["echo", "if", "while",
+                               "readline", "else", "and", "or", 'false', 'true']
 
     def select_next(self):
 
@@ -53,11 +54,72 @@ class Tokenizer:
             self.position += 1
 
         elif self.origin[self.position] == "=":
-            self.actual = Token("=", "ASSIGN")
-            self.position += 1
+            if (self.origin[self.position] + self.origin[self.position + 1] == "=="):
+                self.actual = Token("==", "EQUAL")
+                self.position += 2
+            else:
+                self.actual = Token("=", "ASSIGN")
+                self.position += 1
 
         elif self.origin[self.position] == ";":
             self.actual = Token(";", "ENDL")
+            self.position += 1
+
+        elif self.origin[self.position] == ">":
+            self.actual = Token(">", "MORE")
+            self.position += 1
+
+        elif self.origin[self.position] == ".":
+            self.actual = Token(".", "CONCAT")
+            self.position += 1
+
+        elif self.origin[self.position] == "<":
+            if(self.origin[self.position + 1] == '?'):
+                header = ''
+                while(self.origin[self.position] != '\n'):
+                    header += self.origin[self.position]
+
+                    if (self.position < len(self.origin) - 1):
+                        self.position += 1
+                    else:
+                        break
+                self.actual = Token("<?php", "HEADER")
+                self.position += 1
+            else:
+                self.actual = Token("<", "LESS")
+                self.position += 1
+
+        elif(self.origin[self.position] == '?'):
+            header = ''
+            while(self.origin[self.position] != '>'):
+                header += self.origin[self.position]
+
+                if (self.position < len(self.origin) - 1):
+                    self.position += 1
+                else:
+                    break
+            self.actual = Token("?>", "BOTTOM")
+            self.position += 1
+
+        elif self.origin[self.position] == "or":
+            self.actual = Token("or", "OR")
+            self.position += 1
+
+        elif self.origin[self.position] == "and":
+            self.actual = Token("and", "AND")
+            self.position += 1
+
+        elif self.origin[self.position] == "!":
+            self.actual = Token("!", "NOT")
+            self.position += 1
+
+            while(self.origin[self.position] != '\n'):
+                header += self.origin[self.position]
+
+                if (self.position < len(self.origin) - 1):
+                    self.position += 1
+                else:
+                    break
             self.position += 1
 
         elif self.origin[self.position].isdigit():
@@ -82,8 +144,27 @@ class Tokenizer:
                 else:
                     break
 
-            self.actual = Token(alpha.lower(), "COMMAND")
-        
+            if (alpha.lower() == 'false'):
+                self.actual = Token(False , "BOOL")
+            elif alpha.lower() == 'true':
+                self.actual = Token(True , "BOOL")
+            else:
+                self.actual = Token(alpha.lower(), "COMMAND")
+
+        elif self.origin[self.position] == "\"":
+            self.position += 1
+            alpha = ""
+            while(self.origin[self.position] != "\""):
+                alpha += self.origin[self.position]
+
+                if (self.position < len(self.origin) - 1):
+                    self.position += 1
+                else:
+                    break
+
+            self.position += 1
+            self.actual = Token(alpha, 'STRING')
+
         elif self.origin[self.position] == "$":
             var_name = ""
             self.position += 1

@@ -17,7 +17,7 @@ class Tokenizer:
 
     def select_next(self):
 
-        if self.origin[self.position] == " " or self.origin[self.position] == "\n":
+        if self.origin[self.position] == " " or self.origin[self.position] == "\n" or self.origin[self.position] == "\t":
             self.position += 1
             self.select_next()
 
@@ -101,14 +101,6 @@ class Tokenizer:
             self.actual = Token("?>", "BOTTOM")
             self.position += 1
 
-        elif self.origin[self.position] == "or":
-            self.actual = Token("or", "OR")
-            self.position += 1
-
-        elif self.origin[self.position] == "and":
-            self.actual = Token("and", "AND")
-            self.position += 1
-
         elif self.origin[self.position] == "!":
             self.actual = Token("!", "NOT")
             self.position += 1
@@ -148,6 +140,10 @@ class Tokenizer:
                 self.actual = Token(False , "BOOL")
             elif alpha.lower() == 'true':
                 self.actual = Token(True , "BOOL")
+            elif alpha.lower() == 'and':
+                self.actual = Token("and", "AND")
+            elif alpha.lower() == 'or':
+                self.actual = Token('or', "OR")
             else:
                 self.actual = Token(alpha.lower(), "COMMAND")
 

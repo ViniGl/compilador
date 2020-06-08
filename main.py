@@ -2,6 +2,7 @@ import sys
 import re
 from Parser import Parser
 from SymbolTable import *
+from Assembly import *
 
 if __name__ == "__main__":
 
@@ -13,6 +14,7 @@ if __name__ == "__main__":
         resultado = Parser.run(code)
         st = SymbolTable()
         resultado = resultado.Evaluate(st)
+        Assembly.CreateFile("code.asm")
     else:
         raise Exception("ERRO")
     

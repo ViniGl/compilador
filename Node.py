@@ -131,6 +131,8 @@ class Assignment(Node):
             expression = self.children[1].Evaluate(st)
             value = expression[1]
             ty = expression[0]
+            
+            st.setter(var_name, value, ty)
             cmd = f"MOV [EBP-{st.getter(var_name)[2]}], EBX;"
             Assembly.MakeString(cmd)
         else:

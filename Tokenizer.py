@@ -17,7 +17,7 @@ class Tokenizer:
 
     def select_next(self):
 
-        if self.origin[self.position] == " " or self.origin[self.position] == "\n":
+        if self.origin[self.position] == " " or self.origin[self.position] == "\n" or self.origin[self.position] == "\t":
             self.position += 1
             self.select_next()
 

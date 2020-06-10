@@ -1,3 +1,6 @@
+from SymbolTable import *
+
+
 class Node:
 
     def __init__(self, value=None, children=[]):
@@ -180,3 +183,51 @@ class ReadLineOp(Node):
 
     def Evaluate(self, st):
         return ('int', int(input()))
+
+class FuncDec(Node):
+    def Evaluate(self, st):
+        name = self.value
+
+        args = self.children
+
+        st.setter(name, args, "FuncDec")
+
+class FuncCall(Node):
+    """
+        TODO: recuperar no da ST_FUNC a partir do nome
+        TODO: Criar ST local e salvar argumentos funcdec = valores funccall 
+    """
+    def Evaluate(self, st):
+        
+        name = self.value
+
+        args = self.children
+
+        func_dec = st.getter(name)
+
+        args_dec = func_dec[1]
+
+        if len(args_dec[0:-1]) != len(args):
+            raise Exception ("Invalid number of arguments") 
+
+        st_local = SymbolTable()
+
+        for i in range(len(args)):
+            args_value = args[i].Evaluate(st)
+            st_local.setter(args[i].value, args_value[1], args_value[0])
+        
+        func_call = args_dec[-1]
+
+        func_call.Evaluate(st_local)
+        result = st_local.getter("$$RESULT")
+
+        if result != None:
+            return result
+
+class ReturnOp(Node):
+
+    def Evaluate(self, st):
+        
+        result = self.children[0].Evaluate(st)
+        st.setter("$$RESULT", result[1], result[0])
+

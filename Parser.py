@@ -114,6 +114,27 @@ class Parser:
         elif "$" in Parser.tokens.actual.value:
             return VarName(Parser.tokens.actual.value)
 
+        elif Parser.tokens.actual.token_type == "FuncName":
+            
+            name = Parser.tokens.actual.value
+            func_call = FuncCall(name, [])
+
+            Parser.tokens.select_next()
+
+            if (Parser.tokens.actual.value == "("):
+                
+                while Parser.tokens.actual.value != ")":
+                    Parser.tokens.select_next()
+
+                    func_call.children.append(Parser.parseRelExpression())
+
+                    if Parser.tokens.actual.value == ",":
+                            Parser.tokens.select_next()
+
+                return func_call
+            else:
+                raise Exception("Expected (")
+
         else:
             raise Exception("No options on Factor")
 
@@ -286,6 +307,68 @@ class Parser:
             
             return cond_node
         
+        elif Parser.tokens.actual.value == "function":
+
+            Parser.tokens.select_next()
+
+            if Parser.tokens.actual.token_type == "FuncName":
+                name = Parser.tokens.actual.value
+                func_node = FuncDec(name, [])
+
+                Parser.tokens.select_next()
+
+                if Parser.tokens.actual.value == "(":
+                    args = []
+                    while (Parser.tokens.actual.value != ")"):
+                        Parser.tokens.select_next()
+
+                        func_node.children.append(Parser.parseRelExpression())
+
+                        if Parser.tokens.actual.value == ",":
+                            Parser.tokens.select_next()
+                    
+                    Parser.tokens.select_next()
+                    func_node.children.append(Parser.parseCommand())
+
+                    return func_node
+                else:
+                    raise Exception("( required on function declaration")
+            else:
+                raise Exception("Invalid function name")
+                
+        elif Parser.tokens.actual.token_type == "FuncName":
+        
+            name = Parser.tokens.actual.value
+            func_call = FuncCall(name, [])
+
+            Parser.tokens.select_next()
+
+            if (Parser.tokens.actual.value == "("):
+                
+                while Parser.tokens.actual.value != ")":
+                    Parser.tokens.select_next()
+
+                    func_call.children.append(Parser.parseRelExpression())
+
+                    if Parser.tokens.actual.value == ",":
+                            Parser.tokens.select_next()
+
+                Parser.tokens.select_next()
+                return func_call
+            else:
+                raise Exception("Expected (")
+
+        elif Parser.tokens.actual.value == "return":
+            
+            return_node = ReturnOp('return', [])
+
+            Parser.tokens.select_next()
+
+            return_node.children.append(Parser.parseRelExpression())
+
+            Parser.tokens.select_next()
+            return return_node
+
         else:
             return Parser.parseBlock()
 

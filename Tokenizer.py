@@ -13,13 +13,18 @@ class Tokenizer:
         self.actual = Token(None, None)
         self.select_next()
         self.reserved_words = ["echo", "if", "while",
-                               "readline", "else", "and", "or", 'false', 'true']
+                               "readline", "else", "and", "or", 'false', 'true',
+                               'function', 'return']
 
     def select_next(self):
 
-        if self.origin[self.position] == " " or self.origin[self.position] == "\n":
+        if self.origin[self.position] == " " or self.origin[self.position] == "\n" or self.origin[self.position] == "\t":
             self.position += 1
             self.select_next()
+
+        elif self.origin[self.position] == ",":
+            self.actual = Token(",", "COMMA")
+            self.position += 1
 
         elif self.origin[self.position] == "+":
             self.actual = Token("+", "PLUS")
@@ -148,6 +153,12 @@ class Tokenizer:
                 self.actual = Token(False , "BOOL")
             elif alpha.lower() == 'true':
                 self.actual = Token(True , "BOOL")
+            
+            elif alpha.lower() == 'function':
+                self.actual = Token("function" , "FuncDec")
+
+            elif alpha.lower() not in self.reserved_words:
+                self.actual = Token(alpha.lower(), "FuncName")
             else:
                 self.actual = Token(alpha.lower(), "COMMAND")
 

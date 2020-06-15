@@ -118,15 +118,6 @@ class Tokenizer:
             self.actual = Token("!", "NOT")
             self.position += 1
 
-            while(self.origin[self.position] != '\n'):
-                header += self.origin[self.position]
-
-                if (self.position < len(self.origin) - 1):
-                    self.position += 1
-                else:
-                    break
-            self.position += 1
-
         elif self.origin[self.position].isdigit():
             number = ""
             while(self.origin[self.position].isdigit()):

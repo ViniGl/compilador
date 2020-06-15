@@ -8,7 +8,7 @@ class Parser:
 
     tokens = ""
 
-    ################################################################################ PROGRAM
+    # PROGRAM
     @staticmethod
     def parseProgram():
         if Parser.tokens.actual.value == "<?php":
@@ -22,7 +22,7 @@ class Parser:
         else:
             raise Exception("{ delimiter not found")
 
-    ################################################################################ TERM
+    # TERM
     @staticmethod
     def parseTerm():
         resultado_mult = Parser.parseFactor()
@@ -53,7 +53,7 @@ class Parser:
 
         return resultado_mult
 
-    ################################################################################ FACTOR
+    # FACTOR
     @staticmethod
     def parseFactor():
         resultado_factor = 0
@@ -84,7 +84,7 @@ class Parser:
         elif Parser.tokens.actual.token_type == "BOOL":
             node = BoolVal(Parser.tokens.actual.value, [])
             return node
-        
+
         elif Parser.tokens.actual.token_type == "STRING":
             node = StringVal(Parser.tokens.actual.value, [])
             return node
@@ -93,7 +93,7 @@ class Parser:
             Parser.tokens.select_next()
             resultado_factor = Parser.parseRelExpression()
             if Parser.tokens.actual.value == ')':
-                
+
                 return resultado_factor
 
         elif Parser.tokens.actual.value == "readline":
@@ -108,37 +108,36 @@ class Parser:
             else:
                 raise Exception("( not found after readline")
 
-            
             return rl_node
 
         elif "$" in Parser.tokens.actual.value:
             return VarName(Parser.tokens.actual.value)
 
         elif Parser.tokens.actual.token_type == "FuncName":
-            
+
             name = Parser.tokens.actual.value
             func_call = FuncCall(name, [])
 
             Parser.tokens.select_next()
 
             if (Parser.tokens.actual.value == "("):
-                
+                Parser.tokens.select_next()
+
                 while Parser.tokens.actual.value != ")":
-                    Parser.tokens.select_next()
 
                     func_call.children.append(Parser.parseRelExpression())
 
                     if Parser.tokens.actual.value == ",":
-                            Parser.tokens.select_next()
-
+                        Parser.tokens.select_next()
                 return func_call
+
             else:
                 raise Exception("Expected (")
 
         else:
             raise Exception("No options on Factor")
 
-    ################################################################################ EXPRESSION
+    # EXPRESSION
     @staticmethod
     def parseExpression():
         Parser.resultado = Parser.parseTerm()
@@ -172,7 +171,7 @@ class Parser:
 
         return Parser.resultado
 
-    ################################################################################ RelEXPRESSION
+    # RelEXPRESSION
     @staticmethod
     def parseRelExpression():
         Parser.resultado = Parser.parseExpression()
@@ -200,7 +199,7 @@ class Parser:
 
         return Parser.resultado
 
-    ################################################################################ BLOCK
+    # BLOCK
     @staticmethod
     def parseBlock():
         if Parser.tokens.actual.value == "{":
@@ -223,10 +222,10 @@ class Parser:
         else:
             raise Exception("{ delimiter not found")
 
-    ################################################################################ COMMAND
+    # COMMAND
     @staticmethod
     def parseCommand():
-        
+
         if Parser.tokens.actual.value == ";":
             pass
 
@@ -268,17 +267,17 @@ class Parser:
         elif Parser.tokens.actual.value == "while":
             while_node = LoopOp('while', [])
             Parser.tokens.select_next()
-          
+
             if Parser.tokens.actual.value == '(':
                 Parser.tokens.select_next()
                 while_node.children.append(Parser.parseRelExpression())
-                
+
                 if Parser.tokens.actual.value == ')':
                     Parser.tokens.select_next()
                     while_node.children.append(Parser.parseCommand())
                 else:
                     raise Exception(") not found on while statment")
-            
+
             else:
                 raise Exception("( not found on while statment")
 
@@ -287,7 +286,7 @@ class Parser:
         elif Parser.tokens.actual.value == "if":
             cond_node = IfOp('if', [])
             Parser.tokens.select_next()
-           
+
             if Parser.tokens.actual.value == '(':
                 Parser.tokens.select_next()
                 cond_node.children.append(Parser.parseRelExpression())
@@ -299,14 +298,13 @@ class Parser:
                     raise Exception(") not found on if clause")
             else:
                 raise Exception("( not found on If clause")
-            
-            
+
             if Parser.tokens.actual.value == 'else':
                 Parser.tokens.select_next()
                 cond_node.children.append(Parser.parseCommand())
-            
+
             return cond_node
-        
+
         elif Parser.tokens.actual.value == "function":
 
             Parser.tokens.select_next()
@@ -319,14 +317,16 @@ class Parser:
 
                 if Parser.tokens.actual.value == "(":
                     args = []
-                    while (Parser.tokens.actual.value != ")"):
-                        Parser.tokens.select_next()
+                    Parser.tokens.select_next()
+                    if Parser.tokens.actual.value != ')':
+                        while (Parser.tokens.actual.value != ")"):
+                            func_node.children.append(
+                                Parser.parseRelExpression())
+                            # Parser.tokens.select_next()
 
-                        func_node.children.append(Parser.parseRelExpression())
+                            if Parser.tokens.actual.value == ",":
+                                Parser.tokens.select_next()
 
-                        if Parser.tokens.actual.value == ",":
-                            Parser.tokens.select_next()
-                    
                     Parser.tokens.select_next()
                     func_node.children.append(Parser.parseCommand())
 
@@ -335,23 +335,21 @@ class Parser:
                     raise Exception("( required on function declaration")
             else:
                 raise Exception("Invalid function name")
-                
+
         elif Parser.tokens.actual.token_type == "FuncName":
-        
+
             name = Parser.tokens.actual.value
             func_call = FuncCall(name, [])
 
             Parser.tokens.select_next()
 
             if (Parser.tokens.actual.value == "("):
-                
+                Parser.tokens.select_next()
+
                 while Parser.tokens.actual.value != ")":
-                    Parser.tokens.select_next()
-
                     func_call.children.append(Parser.parseRelExpression())
-
                     if Parser.tokens.actual.value == ",":
-                            Parser.tokens.select_next()
+                        Parser.tokens.select_next()
 
                 Parser.tokens.select_next()
                 return func_call
@@ -359,7 +357,7 @@ class Parser:
                 raise Exception("Expected (")
 
         elif Parser.tokens.actual.value == "return":
-            
+
             return_node = ReturnOp('return', [])
 
             Parser.tokens.select_next()

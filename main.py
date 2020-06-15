@@ -12,7 +12,8 @@ if __name__ == "__main__":
         code = f.read()
         resultado = Parser.run(code)
         st = SymbolTable()
-        resultado = resultado.Evaluate(st)
+        st_func = SymbolTable()
+        resultado = resultado.Evaluate(st, st_func)
     else:
         raise Exception("ERRO")
     

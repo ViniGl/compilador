@@ -197,6 +197,9 @@ class FuncDec(Node):
 
         args = self.children
 
+        if(st_func.isSetted(name)):
+            raise Exception(f"Function {name} already declared")
+
         st_func.setter(name, args, "FuncDec")
 
 class FuncCall(Node):
